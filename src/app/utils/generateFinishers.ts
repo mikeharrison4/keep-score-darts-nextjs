@@ -12,10 +12,6 @@ const doubles = darts
   .filter((dart) => dart !== 50 && dart !== 25)
   .map((d) => d * 2);
 
-const triples = darts
-  .filter((dart) => dart !== 50 && dart !== 25)
-  .map((d) => d * 3);
-
 function isBullseye(dart: number | string) {
   return dart === '50' || dart === 50;
 }
