@@ -20,19 +20,6 @@ function isBullseye(dart: number | string) {
   return dart === '50' || dart === 50;
 }
 
-// function loopThroughDarts() {
-//   for (const dart of darts) {
-//     multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
-//       // do not multiply when dart is bullseye or 25
-//       if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
-//         return;
-//       }
-//
-//
-//     });
-//   }
-// }
-
 function isDartAFinalFinisher(dart: string) {
   return dart.startsWith('D') || isBullseye(dart);
 }
