@@ -1,12 +1,7 @@
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { GlobalStyle } from '@/app/globalStyles';
-import Scoreboard from '@/components/Scoreboard';
-import GameConfiguration from '@/components/GameConfiguration';
-import Login from '@/components/Login';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+
+import Login from './login/page';
 import Config from '@/app/config/page';
 
 // export type GameConfig = {
@@ -157,11 +152,9 @@ export default async function Home() {
     data: { session },
   } = await supabase.auth.getSession();
 
-  console.log(session, '<<<');
-
   if (!session) {
-    redirect('/login');
+    return <Login />;
   } else {
-    redirect('/config');
+    return <Config />;
   }
 }

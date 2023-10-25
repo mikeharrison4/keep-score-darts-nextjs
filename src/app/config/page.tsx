@@ -1,43 +1,16 @@
-'use client';
-
 import React from 'react';
-import styled from 'styled-components';
-import { GlobalStyle } from '@/app/globalStyles';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
+import ConfigCreation from '@/app/config/ConfigCreation';
 
-const Container = styled.div({
-  maxWidth: '1000px',
-  color: 'white',
-  margin: 'auto',
-});
+async function Config() {
+  const supabase = createServerComponentClient({ cookies });
 
-const MainHeading = styled.div({
-  display: 'flex',
-  alignItems: 'center',
-  width: '100%',
-  justifyContent: 'space-between',
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  h1: {
-    width: '100%',
-    color: 'white',
-    padding: '1.2rem',
-    borderBottom: '4px solid',
-  },
-});
-
-function Config() {
-  async function handleAuthLogout() {
-    // await
-  }
-
-  return (
-    <Container>
-      <GlobalStyle />
-      <MainHeading>
-        <h1>KeepScore Darts 🎯</h1>
-        <button>Logout</button>
-      </MainHeading>
-    </Container>
-  );
+  return <ConfigCreation session={session} />;
 }
 
 export default Config;
