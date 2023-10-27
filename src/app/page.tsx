@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 
 import Login from './login/page';
 import Config from '@/app/config/page';
+import { redirect, useRouter } from 'next/navigation';
 
 // export type GameConfig = {
 //   gameStarted: boolean;
@@ -148,6 +149,7 @@ import Config from '@/app/config/page';
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
+
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -155,6 +157,7 @@ export default async function Home() {
   if (!session) {
     return <Login />;
   } else {
-    return <Config />;
+    redirect('/config');
+    // return <Config />;
   }
 }

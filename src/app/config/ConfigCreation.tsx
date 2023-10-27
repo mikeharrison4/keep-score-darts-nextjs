@@ -40,21 +40,7 @@ const MainHeading = styled.div({
 function ConfigCreation({ session }: ConfigProps) {
   const router = useRouter();
 
-  async function handleLogout() {
-    await fetch('/auth/logout', { method: 'POST' });
-    router.refresh();
-  }
-
-  return (
-    <Container>
-      <GlobalStyle />
-      <MainHeading>
-        <h1>KeepScore Darts 🎯</h1>
-        <h6>{session?.user.email}</h6>
-        <button onClick={handleLogout}>Logout</button>
-      </MainHeading>
-    </Container>
-  );
+  return <Container>logged in</Container>;
 }
 
 export default ConfigCreation;

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { GlobalStyle } from '@/app/globalStyles';
 
@@ -19,8 +19,6 @@ const MainHeading = styled.h1({
 function Login() {
   return (
     <Container>
-      <GlobalStyle />
-      <MainHeading>KeepScore Darts 🎯</MainHeading>
       <form action="/auth/login" method="post">
         <label htmlFor="email">Email</label>
         <input name="email" />
