@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import StyledComponentsRegistry from './lib/registry';
+import Container from './Container';
 import Header from './Header';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { useRouter } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'KeepScore Darts',
@@ -25,10 +25,10 @@ export default async function RootLayout({
     <html lang="en">
       <body>
         <StyledComponentsRegistry>
-          <div>
+          <Container>
             <Header session={session} />
             {children}
-          </div>
+          </Container>
         </StyledComponentsRegistry>
       </body>
     </html>

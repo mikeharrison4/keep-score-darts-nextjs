@@ -46,7 +46,7 @@ const PlayerList = styled.ul({
   color: 'white',
 });
 
-const scoreOptions: Array<number> = [301, 401, 501];
+const scoreOptions: Array<number> = [40, 401, 501];
 
 function GameConfiguration({
   onAddPlayer,

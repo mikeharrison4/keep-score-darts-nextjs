@@ -1,12 +1,12 @@
 const multipliersWithPrefixes = [
-  { multiplier: 3, prefix: 'T' },
-  { multiplier: 2, prefix: 'D' },
   { multiplier: 1, prefix: '' },
+  { multiplier: 2, prefix: 'D' },
+  { multiplier: 3, prefix: 'T' },
 ];
 
 const darts = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 50,
-].reverse();
+  20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 50, 25,
+];
 
 const doubles = darts
   .filter((dart) => dart !== 50 && dart !== 25)
@@ -23,9 +23,10 @@ function isDartAFinalFinisher(dart: string) {
 function findFinishers(
   finishers: Array<Array<string>>,
   remainingScore: number,
+  throwsLeft: number,
   dartsUsed: Array<string>
 ) {
-  // finish with just one dart throw
+  // finish with just one dart throw, this will always be caught in the initial loop
   if (remainingScore === 0 && isDartAFinalFinisher(dartsUsed[0])) {
     finishers.push(dartsUsed);
     return;
@@ -39,7 +40,10 @@ function findFinishers(
 
   // finish with double
   if (doubles.includes(remainingScore)) {
-    finishers.push([...dartsUsed, `D${remainingScore / 2}`]);
+    const finishingDarts = [...dartsUsed, `D${remainingScore / 2}`];
+    if (finishingDarts.length > throwsLeft) return;
+
+    finishers.push(finishingDarts);
     return;
   }
 
@@ -54,7 +58,7 @@ function findFinishers(
 
       // only recursively loop through it again if there is definitely a finishing dart that is a double or a bullseye, if not, then fallback to initial loop
       if (doubles.includes(nextRemainingScore) || nextRemainingScore === 50) {
-        findFinishers(finishers, nextRemainingScore, [
+        findFinishers(finishers, nextRemainingScore, throwsLeft, [
           ...dartsUsed,
           `${prefix}${dart}`,
         ]);
@@ -64,7 +68,8 @@ function findFinishers(
 }
 
 export function generateFinishers(
-  remainingScore: number
+  remainingScore: number,
+  throwsLeft: number
 ): Array<Array<string>> {
   const finishers: Array<Array<string>> = [];
 
@@ -78,7 +83,9 @@ export function generateFinishers(
         return;
       }
 
-      findFinishers(finishers, nextRemainingScore, [`${prefix}${dart}`]);
+      findFinishers(finishers, nextRemainingScore, throwsLeft, [
+        `${prefix}${dart}`,
+      ]);
     });
   }
 

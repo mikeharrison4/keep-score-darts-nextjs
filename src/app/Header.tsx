@@ -2,13 +2,11 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { GlobalStyle } from '@/app/globalStyles';
 import { Session } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 
 const Container = styled.div({
-  maxWidth: '1000px',
-  margin: 'auto',
+  marginBottom: '2.4rem',
 });
 
 const MainHeading = styled.div({
@@ -40,7 +38,6 @@ function Header({ session }: { session: Session | null }) {
 
   return (
     <Container>
-      <GlobalStyle />
       <MainHeading>
         <h1>KeepScore Darts 🎯</h1>
         {session?.user && (

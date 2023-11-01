@@ -1,19 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
-import { GlobalStyle } from '@/app/globalStyles';
 
 const Container = styled.div({
-  maxWidth: '1000px',
   color: 'white',
-  margin: 'auto',
-});
-
-const MainHeading = styled.h1({
-  color: 'white',
-  padding: '1.2rem',
-  borderBottom: '4px solid',
 });
 
 function Login() {

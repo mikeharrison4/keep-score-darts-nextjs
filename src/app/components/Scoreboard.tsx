@@ -1,15 +1,15 @@
+'use client';
+
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import ContinueGameModal from './ContinueGameModal';
+// import ContinueGameModal from './ContinueGameModal';
 import { generateFinishers } from '@/app/utils/generateFinishers';
-import { PlayerConfig } from '@/app/page';
+import { PlayerConfig } from '@/app/config/page';
 
 const SCORE_VALUES = [
-  [
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25,
-    50, 0,
-  ],
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 50,
+  0,
 ];
 
 type ScoreboardProps = {
@@ -129,6 +129,10 @@ const UndoBtn = styled(BoostButton)({
   },
 });
 
+function hasPlayerWon(playerScore: number) {
+  return playerScore === 0;
+}
+
 function Scoreboard({
   playersConfig,
   updatePlayersScore,
@@ -142,6 +146,8 @@ function Scoreboard({
   const [isDouble, setIsDouble] = useState(false);
   const [isTriple, setIsTriple] = useState(false);
 
+  const currentPlayerScore = playersConfig[currentPlayerIndex].score;
+
   function nextPlayerHandler() {
     setThrows(3);
     setScores([0, 0, 0]);
@@ -150,7 +156,6 @@ function Scoreboard({
   }
 
   function handleUndo() {
-    const currentPlayerScore = playersConfig[currentPlayerIndex].score;
     const scoreIndex = 3 - throws - 1;
 
     setPlayerScorePerRound((prev) => prev - scores[scoreIndex]);
@@ -165,43 +170,44 @@ function Scoreboard({
   }
 
   function handleClickScoreValue(value: number) {
-    let updatedScore = value;
+    let dartValue = value;
 
     if (isDouble) {
       setIsDouble(false);
-      updatedScore = updatedScore * 2;
+      dartValue = dartValue * 2;
     }
 
     if (isTriple) {
       setIsTriple(false);
-      updatedScore = updatedScore * 3;
+      dartValue = dartValue * 3;
     }
 
     setThrows((prev) => prev - 1);
 
     setScores((prev) => {
-      prev[3 - throws] = updatedScore;
+      prev[3 - throws] = dartValue;
       return prev;
     });
 
-    setPlayerScorePerRound((prev) => prev + updatedScore);
-    updatePlayersScore(updatedScore);
+    setPlayerScorePerRound((prev) => prev + dartValue);
+    updatePlayersScore(dartValue);
 
-    if (throws - 1 === 0) {
+    if (hasPlayerWon(currentPlayerScore)) {
+      console.log('WON!!!');
+      return;
+    }
+
+    if (throws - 1 === 0 && !hasPlayerWon(currentPlayerScore)) {
       nextPlayerHandler();
     }
   }
 
-  const finishers = null;
-
-  // const finishers: Array<string> | null =
-  //   playersConfig[currentPlayerIndex].score <= 170
-  //     ? generateFinishers(playersConfig[currentPlayerIndex].score).sort(
-  //         (a, b) => a.length - b.length
-  //       )[0]
-  //     : null;
-
-  console.log(generateFinishers(6)[9]);
+  const finishers: Array<string> | null =
+    currentPlayerScore <= 170
+      ? generateFinishers(currentPlayerScore, throws).sort(
+          (a, b) => a.length - b.length
+        )[0]
+      : null;
 
   return (
     <>
@@ -217,11 +223,12 @@ function Scoreboard({
           </PlayerContainer>
         ))}
         <ScoreValues>
-          {SCORE_VALUES[0].map((value) => (
+          {SCORE_VALUES.map((value) => (
             <button
               key={value}
               value={value}
               onClick={() => handleClickScoreValue(value)}
+              disabled={(isTriple || isDouble) && [50, 25, 0].includes(value)}
             >
               {value}
             </button>
