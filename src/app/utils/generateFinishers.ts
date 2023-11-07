@@ -26,7 +26,7 @@ function findFinishers(
   throwsLeft: number,
   dartsUsed: Array<string>
 ) {
-  // finish with just one dart throw, this will always be caught in the initial loop
+  // finish with just one dart throw, this will always only be caught in the initial loop
   if (remainingScore === 0 && isDartAFinalFinisher(dartsUsed[0])) {
     finishers.push(dartsUsed);
     return;
@@ -34,6 +34,9 @@ function findFinishers(
 
   // finish with bullseye
   if (isBullseye(remainingScore)) {
+    const finishingDarts = [...dartsUsed, `D${remainingScore / 2}`];
+    if (finishingDarts.length > throwsLeft) return;
+
     finishers.push([...dartsUsed, `${remainingScore}`]);
     return;
   }

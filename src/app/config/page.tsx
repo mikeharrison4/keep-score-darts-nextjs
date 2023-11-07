@@ -75,9 +75,9 @@ function Config() {
     updateDataToStorage(gameConfig);
   }
 
-  function updatePlayersScore(score: number) {
+  function updatePlayersScore(value: number) {
     const players = [...playersConfig];
-    players[currentPlayerIndex].score -= score;
+    players[currentPlayerIndex].score -= value;
 
     setGameConfig((prev) => {
       return {

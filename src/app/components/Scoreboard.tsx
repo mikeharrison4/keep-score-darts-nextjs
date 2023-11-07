@@ -127,10 +127,21 @@ const UndoBtn = styled(BoostButton)({
   ':hover': {
     opacity: '.8',
   },
+
+  ':disabled': {
+    cursor: 'not-allowed',
+  },
 });
 
-function hasPlayerWon(playerScore: number) {
-  return playerScore === 0;
+function hasPlayerWon(playerScore: number, isCheckoutModeEnabled: boolean) {
+  return isCheckoutModeEnabled && playerScore === 0;
+}
+
+function hasPlayerGoneBust(
+  playerScore: number,
+  isCheckoutModeEnabled: boolean
+) {
+  return playerScore < 0 || (!isCheckoutModeEnabled && playerScore === 0);
 }
 
 function Scoreboard({
@@ -141,7 +152,7 @@ function Scoreboard({
   clearGame,
 }: ScoreboardProps) {
   const [throws, setThrows] = useState(3); // change this to 0
-  const [scores, setScores] = useState<Array<number>>([0, 0, 0]);
+  const [scores, setScores] = useState<Array<any>>([null, null, null]);
   const [playerScorePerRound, setPlayerScorePerRound] = useState(0);
   const [isDouble, setIsDouble] = useState(false);
   const [isTriple, setIsTriple] = useState(false);
@@ -150,13 +161,14 @@ function Scoreboard({
 
   function nextPlayerHandler() {
     setThrows(3);
-    setScores([0, 0, 0]);
+    setScores([null, null, null]);
     setPlayerScorePerRound(0);
     nextPlayer();
   }
 
   function handleUndo() {
     const scoreIndex = 3 - throws - 1;
+    if (!scores[scoreIndex]) return;
 
     setPlayerScorePerRound((prev) => prev - scores[scoreIndex]);
     const newScores = [...scores];
@@ -190,14 +202,20 @@ function Scoreboard({
     });
 
     setPlayerScorePerRound((prev) => prev + dartValue);
+
+    if (hasPlayerGoneBust(currentPlayerScore - dartValue, isDouble)) {
+      nextPlayerHandler();
+      return;
+    }
+
     updatePlayersScore(dartValue);
 
-    if (hasPlayerWon(currentPlayerScore)) {
+    if (hasPlayerWon(currentPlayerScore - dartValue, isDouble)) {
       console.log('WON!!!');
       return;
     }
 
-    if (throws - 1 === 0 && !hasPlayerWon(currentPlayerScore)) {
+    if (throws - 1 === 0) {
       nextPlayerHandler();
     }
   }
@@ -240,7 +258,9 @@ function Scoreboard({
             <TripleBtn onClick={() => setIsTriple(true)} selected={isTriple}>
               Triple
             </TripleBtn>
-            <UndoBtn onClick={handleUndo}>Undo</UndoBtn>
+            <UndoBtn onClick={handleUndo} disabled={throws === 3}>
+              Undo
+            </UndoBtn>
           </BoostScoresAndUndo>
         </ScoreValues>
         {finishers?.length && (
@@ -252,7 +272,7 @@ function Scoreboard({
         )}
         <ScoreInputs>
           {scores.map((score, index) => (
-            <Input key={index}>{score === 0 ? '' : score}</Input>
+            <Input key={index}>{score}</Input>
           ))}
         </ScoreInputs>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>

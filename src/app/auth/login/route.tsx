@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
+import { AuthResponse } from '@supabase/gotrue-js';
 
 export async function POST(request: Request) {
   const requestUrl = new URL(request.url);
@@ -12,12 +13,20 @@ export async function POST(request: Request) {
     cookies: () => cookieStore,
   });
 
-  await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  try {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  return NextResponse.redirect(requestUrl.origin, {
-    status: 301,
-  });
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.redirect(requestUrl.origin, {
+      status: 301,
+    });
+  } catch (error: any) {
+    return NextResponse.json(error, { status: error.status });
+  }
 }
