@@ -6,6 +6,8 @@ import styled from 'styled-components';
 // import ContinueGameModal from './ContinueGameModal';
 import { generateFinishers } from '@/app/utils/generateFinishers';
 import { PlayerConfig } from '@/app/config/page';
+import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/client';
 
 const SCORE_VALUES = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 50,
@@ -17,7 +19,8 @@ type ScoreboardProps = {
   updatePlayersScore: (score: number) => void;
   nextPlayer: () => void;
   currentPlayerIndex: number;
-  clearGame: () => void;
+  onClearGame: () => void;
+  onSaveGame: () => void;
 };
 
 const Container = styled.div({
@@ -97,6 +100,10 @@ const BoostScoresAndUndo = styled.div({
 
 const BoostButton = styled.button({
   border: 'none',
+
+  ':disabled': {
+    cursor: 'not-allowed',
+  },
 });
 
 const DoubleBtn = styled(BoostButton)<{ selected: boolean }>(
@@ -127,10 +134,12 @@ const UndoBtn = styled(BoostButton)({
   ':hover': {
     opacity: '.8',
   },
+});
 
-  ':disabled': {
-    cursor: 'not-allowed',
-  },
+const WinningPlayer = styled.div({
+  display: 'flex',
+  marginTop: '12px',
+  justifyContent: 'center',
 });
 
 function hasPlayerWon(playerScore: number, isCheckoutModeEnabled: boolean) {
@@ -149,13 +158,15 @@ function Scoreboard({
   updatePlayersScore,
   nextPlayer,
   currentPlayerIndex,
-  clearGame,
+  onClearGame,
+  onSaveGame,
 }: ScoreboardProps) {
   const [throws, setThrows] = useState(3); // change this to 0
   const [scores, setScores] = useState<Array<any>>([null, null, null]);
   const [playerScorePerRound, setPlayerScorePerRound] = useState(0);
   const [isDouble, setIsDouble] = useState(false);
   const [isTriple, setIsTriple] = useState(false);
+  const [winningPlayer, setWinningPlayer] = useState('');
 
   const currentPlayerScore = playersConfig[currentPlayerIndex].score;
 
@@ -211,7 +222,7 @@ function Scoreboard({
     updatePlayersScore(dartValue);
 
     if (hasPlayerWon(currentPlayerScore - dartValue, isDouble)) {
-      console.log('WON!!!');
+      setWinningPlayer(playersConfig[currentPlayerIndex].player);
       return;
     }
 
@@ -246,19 +257,33 @@ function Scoreboard({
               key={value}
               value={value}
               onClick={() => handleClickScoreValue(value)}
-              disabled={(isTriple || isDouble) && [50, 25, 0].includes(value)}
+              disabled={
+                Boolean(winningPlayer) ||
+                ((isTriple || isDouble) && [50, 25, 0].includes(value))
+              }
             >
               {value}
             </button>
           ))}
           <BoostScoresAndUndo>
-            <DoubleBtn onClick={() => setIsDouble(true)} selected={isDouble}>
+            <DoubleBtn
+              disabled={Boolean(winningPlayer)}
+              onClick={() => setIsDouble(true)}
+              selected={isDouble}
+            >
               Double
             </DoubleBtn>
-            <TripleBtn onClick={() => setIsTriple(true)} selected={isTriple}>
+            <TripleBtn
+              disabled={Boolean(winningPlayer)}
+              onClick={() => setIsTriple(true)}
+              selected={isTriple}
+            >
               Triple
             </TripleBtn>
-            <UndoBtn onClick={handleUndo} disabled={throws === 3}>
+            <UndoBtn
+              onClick={handleUndo}
+              disabled={Boolean(winningPlayer) || throws === 3}
+            >
               Undo
             </UndoBtn>
           </BoostScoresAndUndo>
@@ -275,10 +300,18 @@ function Scoreboard({
             <Input key={index}>{score}</Input>
           ))}
         </ScoreInputs>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <button onClick={clearGame}>Clear game</button>
-          <div>{playerScorePerRound}</div>
-        </div>
+        {!winningPlayer ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <button onClick={onClearGame}>Clear game</button>
+            <div>{playerScorePerRound}</div>
+            <button onClick={onSaveGame}>Save game</button>
+          </div>
+        ) : (
+          <>
+            <WinningPlayer>{winningPlayer} WINS.</WinningPlayer>
+            <button>Set up new game?</button>
+          </>
+        )}
       </Container>
     </>
   );

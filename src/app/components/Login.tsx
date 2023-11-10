@@ -2,7 +2,8 @@
 
 import React, { FormEvent, useState } from 'react';
 import styled from 'styled-components';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
+import { useFormStatus } from 'react-dom';
 
 const Container = styled.div({
   color: 'white',
@@ -48,17 +49,40 @@ const Button = styled.button({
   },
 });
 
+function Pending() {
+  const { pending } = useFormStatus();
+
+  return pending && <div>...loading</div>;
+}
+
 function Login() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState('');
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const onSignIn = async (formData: FormData) => {
     setLoading(true);
-    const formData = new FormData(event.currentTarget);
-
     const response = await fetch('/auth/login', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      setError(error.message);
+      // setLoading(false);
+      return;
+    }
+
+    // setLoading(false);
+    router.refresh();
+  };
+
+  const onSignUp = async (formData: FormData) => {
+    setLoading(true);
+
+    const response = await fetch('/auth/sign-up', {
       method: 'POST',
       body: formData,
     });
@@ -70,22 +94,29 @@ function Login() {
       return;
     }
 
-    router.refresh();
-  }
+    setLoading(false);
+    setVerificationMessage(
+      'Please check your emails and verify your new account before logging in.'
+    );
 
+    // redirect(response.url);
+  };
   return (
     <Container>
-      <Form onSubmit={onSubmit} method="post">
+      <Form action={onSignIn}>
         <Label htmlFor="email">Email</Label>
         <Input name="email" />
         <Label htmlFor="password">Password</Label>
         <Input type="password" name="password" />
-        {loading && <p>...loading</p>}
         {error && <ErrorText>{error}</ErrorText>}
         <ButtonContainer>
-          <Button type="submit">Sign In</Button>
-          <Button formAction="/auth/sign-up">Sign Up</Button>
+          <Button>Sign In</Button>
+          <Button formAction={onSignUp}>Sign Up</Button>
         </ButtonContainer>
+        <div style={{ marginTop: '20px' }}>
+          <Pending />
+          {verificationMessage}
+        </div>
       </Form>
     </Container>
   );

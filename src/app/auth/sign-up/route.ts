@@ -1,6 +1,6 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { createClient } from '@/utils/supabase/server';
 
 // import type { Database } from '@/lib/database.types';
 
@@ -10,19 +10,28 @@ export async function POST(request: Request) {
   const email = String(formData.get('email'));
   const password = String(formData.get('password'));
   const cookieStore = cookies();
-  const supabase = createRouteHandlerClient({
-    cookies: () => cookieStore,
-  });
+  const supabase = createClient(cookieStore);
 
-  await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${requestUrl.origin}/auth/callback`,
-    },
-  });
+  try {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${requestUrl.origin}/auth/callback`,
+        data: {
+          display_name: 'Mike',
+        },
+      },
+    });
 
-  return NextResponse.redirect(`${requestUrl.origin}/auth/verification`, {
-    status: 301,
-  });
+    if (error) {
+      throw error;
+    }
+
+    return NextResponse.redirect(requestUrl.origin, {
+      status: 301,
+    });
+  } catch (error: any) {
+    return NextResponse.json(error, { status: error.status });
+  }
 }

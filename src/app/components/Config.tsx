@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import GameConfiguration from '@/app/components/GameConfiguration';
 import Scoreboard from '@/app/components/Scoreboard';
+import { createClient } from '@/utils/supabase/client';
 
 export type PlayerConfig = {
   score: number;
@@ -44,6 +45,8 @@ const initialGameConfig: GameConfig = {
 };
 
 function Config() {
+  const supabase = createClient();
+
   const [gameConfig, setGameConfig] = useState<GameConfig>(initialGameConfig);
   const [scoreOption, setScoreOption] = useState(301);
   const [players, setPlayers] = useState<Array<string>>([]);
@@ -111,7 +114,11 @@ function Config() {
     });
   }
 
-  function saveGame() {}
+  async function saveGame() {
+    const { error } = await supabase
+      .from('saved_games')
+      .insert({ players: playersConfig });
+  }
 
   function clearGame() {
     setGameConfig(initialGameConfig);
@@ -119,6 +126,8 @@ function Config() {
     setScoreOption(301);
     sessionStorage.removeItem(CONFIG_LOCAL_STORAGE_KEY);
   }
+
+  // FETCH SAVED GAME DATA
 
   return (
     <Container>
