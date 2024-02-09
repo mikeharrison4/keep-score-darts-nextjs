@@ -1,8 +1,8 @@
 'use client';
 
-import React, { FormEvent, useState } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { redirect, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
 
 const Container = styled.div({
@@ -13,7 +13,6 @@ const Container = styled.div({
 
 const Form = styled.form({
   width: '100%',
-  // display: 'flex',
 });
 
 const Label = styled.label({
@@ -49,6 +48,10 @@ const Button = styled.button({
   },
 });
 
+const Feedback = styled.div({
+  marginTop: '20px',
+});
+
 function Pending() {
   const { pending } = useFormStatus();
 
@@ -57,12 +60,11 @@ function Pending() {
 
 function Login() {
   const router = useRouter();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [verificationMessage, setVerificationMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showSignUpVerificationMessage, setShowSignUpVerificationMessage] =
+    useState(false);
 
   const onSignIn = async (formData: FormData) => {
-    setLoading(true);
     const response = await fetch('/auth/login', {
       method: 'POST',
       body: formData,
@@ -70,18 +72,14 @@ function Login() {
 
     if (!response.ok) {
       const error = await response.json();
-      setError(error.message);
-      // setLoading(false);
+      setErrorMessage(error.message);
       return;
     }
 
-    // setLoading(false);
     router.refresh();
   };
 
   const onSignUp = async (formData: FormData) => {
-    setLoading(true);
-
     const response = await fetch('/auth/sign-up', {
       method: 'POST',
       body: formData,
@@ -89,18 +87,14 @@ function Login() {
 
     if (!response.ok) {
       const error = await response.json();
-      setError(error.message);
-      setLoading(false);
+      setErrorMessage(error.message);
       return;
     }
 
-    setLoading(false);
-    setVerificationMessage(
-      'Please check your emails and verify your new account before logging in.'
-    );
-
-    // redirect(response.url);
+    // sign-up successful
+    setShowSignUpVerificationMessage(true);
   };
+
   return (
     <Container>
       <Form action={onSignIn}>
@@ -108,15 +102,20 @@ function Login() {
         <Input name="email" />
         <Label htmlFor="password">Password</Label>
         <Input type="password" name="password" />
-        {error && <ErrorText>{error}</ErrorText>}
+        {errorMessage && <ErrorText>{errorMessage}</ErrorText>}
         <ButtonContainer>
           <Button>Sign In</Button>
           <Button formAction={onSignUp}>Sign Up</Button>
         </ButtonContainer>
-        <div style={{ marginTop: '20px' }}>
+        <Feedback>
           <Pending />
-          {verificationMessage}
-        </div>
+          {showSignUpVerificationMessage && (
+            <p>
+              Please check your emails and verify your new account before
+              logging in.
+            </p>
+          )}
+        </Feedback>
       </Form>
     </Container>
   );

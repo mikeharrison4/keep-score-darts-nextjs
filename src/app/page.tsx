@@ -1,12 +1,9 @@
-import { cookies } from 'next/headers';
-
 import Login from '@/app/components/Login';
-import { createClient } from '@/utils/supabase/server';
-import Config from '@/app/components/Config';
+import Dashboard from '@/app/components/Dashboard';
+import { getSupabaseServerClient } from '@/utils/supabase/server';
 
 export default async function Home() {
-  const cookieStore = cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = getSupabaseServerClient();
 
   const {
     data: { session },
@@ -15,7 +12,6 @@ export default async function Home() {
   if (!session) {
     return <Login />;
   } else {
-    return <Config />;
-    // redirect('/config');
+    return <Dashboard userId={session.user.id} />;
   }
 }

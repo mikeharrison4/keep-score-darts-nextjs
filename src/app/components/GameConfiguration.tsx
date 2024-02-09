@@ -67,7 +67,6 @@ function GameConfiguration({
       <ConfigContainer>
         <div>
           <Input
-            // onChange={(e) => setName(e.target.value)}
             onChange={(e) => setName(e.target.value)}
             value={name}
             placeholder="Enter name here"

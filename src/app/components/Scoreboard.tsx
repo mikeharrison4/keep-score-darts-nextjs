@@ -5,9 +5,13 @@ import styled from 'styled-components';
 
 // import ContinueGameModal from './ContinueGameModal';
 import { generateFinishers } from '@/app/utils/generateFinishers';
-import { PlayerConfig } from '@/app/config/page';
-import { cookies } from 'next/headers';
-import { createClient } from '@/utils/supabase/client';
+import { type PlayerConfig } from '@/app/components/Dashboard';
+import DartValue from '@/app/components/DartValue';
+import BoostButtons from '@/app/components/BoostButtons';
+import FinisherSuggestions from '@/app/components/FinisherSuggestions';
+import ScoreInputs from '@/app/components/ScoreInputs';
+import PlayerScore from '@/app/components/PlayerScore';
+import GameWon from '@/app/components/GameWon';
 
 const SCORE_VALUES = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 50,
@@ -20,7 +24,7 @@ type ScoreboardProps = {
   nextPlayer: () => void;
   currentPlayerIndex: number;
   onClearGame: () => void;
-  onSaveGame: () => void;
+  SaveGame: React.JSX.Element;
 };
 
 const Container = styled.div({
@@ -29,31 +33,7 @@ const Container = styled.div({
   padding: '12px',
 });
 
-const PlayerContainer = styled.div({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  borderBottom: '1px  solid lightgray',
-});
-
-const PlayerName = styled.h4<{ active: boolean }>(({ active }) => ({
-  textTransform: 'uppercase',
-  fontSize: '2rem',
-  padding: '20px 0',
-  letterSpacing: '3px',
-  fontWeight: 100,
-
-  ...(active && {
-    fontWeight: 'bold',
-  }),
-}));
-
-const PlayerScore = styled.div({
-  letterSpacing: '5px',
-  padding: '8px',
-});
-
-const ScoreValues = styled.div({
+const DartValues = styled.div({
   display: 'grid',
   gridTemplateColumns: 'repeat(5, 1fr)',
   width: '100%',
@@ -70,86 +50,11 @@ const ScoreValues = styled.div({
   },
 });
 
-const ScoreInputs = styled.div({
-  display: 'flex',
-  margin: 'auto',
-  justifyContent: 'center',
-  width: '25%',
-});
-
-const Input = styled.div({
-  background: 'white',
-  padding: '4px 10px',
-  margin: '4px',
-  color: 'black',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: '100%',
-  height: '30px',
-});
-
-const BoostScoresAndUndo = styled.div({
-  display: 'flex',
-
-  '> *': {
-    width: '100%',
-    cursor: 'pointer',
-  },
-});
-
-const BoostButton = styled.button({
-  border: 'none',
-
-  ':disabled': {
-    cursor: 'not-allowed',
-  },
-});
-
-const DoubleBtn = styled(BoostButton)<{ selected: boolean }>(
-  ({ selected }) => ({
-    background: 'orange',
-    ...(selected && { border: '3px solid black' }),
-
-    ':hover': {
-      opacity: '.8',
-    },
-  })
-);
-
-const TripleBtn = styled(BoostButton)<{ selected: boolean }>(
-  ({ selected }) => ({
-    background: 'orangered',
-    ...(selected && { border: '3px solid black' }),
-
-    ':hover': {
-      opacity: '.8',
-    },
-  })
-);
-
-const UndoBtn = styled(BoostButton)({
-  background: 'red',
-
-  ':hover': {
-    opacity: '.8',
-  },
-});
-
-const WinningPlayer = styled.div({
-  display: 'flex',
-  marginTop: '12px',
-  justifyContent: 'center',
-});
-
-function hasPlayerWon(playerScore: number, isCheckoutModeEnabled: boolean) {
+function hasWon(playerScore: number, isCheckoutModeEnabled: boolean) {
   return isCheckoutModeEnabled && playerScore === 0;
 }
 
-function hasPlayerGoneBust(
-  playerScore: number,
-  isCheckoutModeEnabled: boolean
-) {
+function hasGoneBust(playerScore: number, isCheckoutModeEnabled: boolean) {
   return playerScore < 0 || (!isCheckoutModeEnabled && playerScore === 0);
 }
 
@@ -160,9 +65,14 @@ function Scoreboard({
   currentPlayerIndex,
   onClearGame,
   onSaveGame,
+  SaveGame,
 }: ScoreboardProps) {
-  const [throws, setThrows] = useState(3); // change this to 0
-  const [scores, setScores] = useState<Array<any>>([null, null, null]);
+  const [throws, setThrows] = useState(3);
+  const [scores, setScores] = useState<Array<number | null>>([
+    null,
+    null,
+    null,
+  ]);
   const [playerScorePerRound, setPlayerScorePerRound] = useState(0);
   const [isDouble, setIsDouble] = useState(false);
   const [isTriple, setIsTriple] = useState(false);
@@ -181,13 +91,13 @@ function Scoreboard({
     const scoreIndex = 3 - throws - 1;
     if (!scores[scoreIndex]) return;
 
-    setPlayerScorePerRound((prev) => prev - scores[scoreIndex]);
+    setPlayerScorePerRound((prev) => prev - (scores[scoreIndex] || 0));
     const newScores = [...scores];
     newScores[scoreIndex] = 0;
 
     setScores(newScores);
     updatePlayersScore(
-      currentPlayerScore - (currentPlayerScore + scores[scoreIndex])
+      currentPlayerScore - (currentPlayerScore + (scores[scoreIndex] || 0))
     );
     setThrows((prev) => prev + 1);
   }
@@ -214,14 +124,14 @@ function Scoreboard({
 
     setPlayerScorePerRound((prev) => prev + dartValue);
 
-    if (hasPlayerGoneBust(currentPlayerScore - dartValue, isDouble)) {
+    if (hasGoneBust(currentPlayerScore - dartValue, isDouble)) {
       nextPlayerHandler();
       return;
     }
 
     updatePlayersScore(dartValue);
 
-    if (hasPlayerWon(currentPlayerScore - dartValue, isDouble)) {
+    if (hasWon(currentPlayerScore - dartValue, isDouble)) {
       setWinningPlayer(playersConfig[currentPlayerIndex].player);
       return;
     }
@@ -238,79 +148,53 @@ function Scoreboard({
         )[0]
       : null;
 
+  const hasPlayerWon = Boolean(winningPlayer);
+
   return (
     <>
       {/*{showContinueGamePopup && <ContinueGameModal clearGame={clearGame} />}*/}
       <Container>
         {playersConfig.map(({ player, score }, index) => (
-          <PlayerContainer key={player}>
-            <PlayerName active={currentPlayerIndex === index}>
-              {player}
-              {currentPlayerIndex === index ? ` ${'🎯'.repeat(throws)}` : ''}
-            </PlayerName>
-            <PlayerScore>{score}</PlayerScore>
-          </PlayerContainer>
+          <PlayerScore
+            key={player}
+            player={player}
+            isActive={currentPlayerIndex === index}
+            throws={throws}
+            score={score}
+          />
         ))}
-        <ScoreValues>
+        <DartValues>
           {SCORE_VALUES.map((value) => (
-            <button
+            <DartValue
               key={value}
               value={value}
-              onClick={() => handleClickScoreValue(value)}
+              onClick={handleClickScoreValue}
               disabled={
-                Boolean(winningPlayer) ||
+                hasPlayerWon ||
                 ((isTriple || isDouble) && [50, 25, 0].includes(value))
               }
-            >
-              {value}
-            </button>
+            />
           ))}
-          <BoostScoresAndUndo>
-            <DoubleBtn
-              disabled={Boolean(winningPlayer)}
-              onClick={() => setIsDouble(true)}
-              selected={isDouble}
-            >
-              Double
-            </DoubleBtn>
-            <TripleBtn
-              disabled={Boolean(winningPlayer)}
-              onClick={() => setIsTriple(true)}
-              selected={isTriple}
-            >
-              Triple
-            </TripleBtn>
-            <UndoBtn
-              onClick={handleUndo}
-              disabled={Boolean(winningPlayer) || throws === 3}
-            >
-              Undo
-            </UndoBtn>
-          </BoostScoresAndUndo>
-        </ScoreValues>
-        {finishers?.length && (
-          <div>
-            {finishers.map((num, index) => (
-              <div key={index}>{num}</div>
-            ))}
-          </div>
-        )}
-        <ScoreInputs>
-          {scores.map((score, index) => (
-            <Input key={index}>{score}</Input>
-          ))}
-        </ScoreInputs>
+          <BoostButtons
+            hasPlayerWon={hasPlayerWon}
+            onClickDouble={() => setIsDouble(true)}
+            onClickTriple={() => setIsTriple(true)}
+            isDouble={isDouble}
+            isTriple={isTriple}
+            onClickUndo={handleUndo}
+            disableUndoBtn={hasPlayerWon || throws === 3}
+          />
+        </DartValues>
+        {finishers?.length && <FinisherSuggestions finishers={finishers} />}
+        <ScoreInputs scores={scores} />
         {!winningPlayer ? (
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <button onClick={onClearGame}>Clear game</button>
             <div>{playerScorePerRound}</div>
-            <button onClick={onSaveGame}>Save game</button>
+            {SaveGame}
           </div>
         ) : (
-          <>
-            <WinningPlayer>{winningPlayer} WINS.</WinningPlayer>
-            <button>Set up new game?</button>
-          </>
+          <GameWon winningPlayer={winningPlayer} />
         )}
       </Container>
     </>

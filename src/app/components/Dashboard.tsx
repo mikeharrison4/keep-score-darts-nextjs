@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import styled from 'styled-components';
 import GameConfiguration from '@/app/components/GameConfiguration';
 import Scoreboard from '@/app/components/Scoreboard';
+import { createClient } from '@/utils/supabase/client';
+import SaveGame from '@/app/components/SaveGame';
+
+const CONFIG_LOCAL_STORAGE_KEY = 'keep-score-darts-config';
 
 export type PlayerConfig = {
   score: number;
@@ -19,8 +23,6 @@ export type GameConfig = {
 const Container = styled.div({
   color: 'white',
 });
-
-const CONFIG_LOCAL_STORAGE_KEY = 'keep-score-darts-config';
 
 function getDataFromStorage(): GameConfig {
   const data =
@@ -43,7 +45,9 @@ const initialGameConfig: GameConfig = {
   currentPlayerIndex: 0,
 };
 
-function Config() {
+function Dashboard({ userId }) {
+  const supabase = createClient();
+
   const [gameConfig, setGameConfig] = useState<GameConfig>(initialGameConfig);
   const [scoreOption, setScoreOption] = useState(301);
   const [players, setPlayers] = useState<Array<string>>([]);
@@ -111,14 +115,14 @@ function Config() {
     });
   }
 
-  function saveGame() {}
-
   function clearGame() {
     setGameConfig(initialGameConfig);
     setPlayers([]);
     setScoreOption(301);
     sessionStorage.removeItem(CONFIG_LOCAL_STORAGE_KEY);
   }
+
+  // FETCH SAVED GAME DATA
 
   return (
     <Container>
@@ -129,10 +133,10 @@ function Config() {
           nextPlayer={nextPlayer}
           currentPlayerIndex={currentPlayerIndex}
           onClearGame={clearGame}
-          onSaveGame={saveGame}
+          SaveGame={<SaveGame userId={userId} playersConfig={playersConfig} />}
         />
       ) : loading ? (
-        '...Loading'
+        '...loading'
       ) : (
         <>
           <GameConfiguration
@@ -150,4 +154,4 @@ function Config() {
   );
 }
 
-export default Config;
+export default Dashboard;
