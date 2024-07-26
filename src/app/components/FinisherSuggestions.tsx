@@ -1,16 +1,30 @@
 import React from 'react';
+import styled from 'styled-components';
 
 type FinisherSuggestionsProps = {
-  finishers: Array<string>;
+  finisher: Array<string>;
 };
 
-function FinisherSuggestions({ finishers }: FinisherSuggestionsProps) {
+const Container = styled.div({
+  display: 'flex',
+  width: '30%',
+  justifyContent: 'space-between',
+  margin: 'auto',
+  marginBottom: '20px',
+});
+
+const Dart = styled.span({
+  fontWeight: 'bold',
+});
+
+function FinisherSuggestions({ finisher }: FinisherSuggestionsProps) {
   return (
-    <div>
-      {finishers.map((num, index) => (
-        <div key={index}>{num}</div>
+    <Container>
+      FINISH WITH:
+      {finisher.map((num, index) => (
+        <Dart key={index}>{num}</Dart>
       ))}
-    </div>
+    </Container>
   );
 }
 

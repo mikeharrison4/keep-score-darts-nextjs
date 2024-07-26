@@ -64,7 +64,7 @@ function Scoreboard({
   nextPlayer,
   currentPlayerIndex,
   onClearGame,
-  onSaveGame,
+  // onSaveGame,
   SaveGame,
 }: ScoreboardProps) {
   const [throws, setThrows] = useState(3);
@@ -141,12 +141,16 @@ function Scoreboard({
     }
   }
 
-  const finishers: Array<string> | null =
+  const finishers =
     currentPlayerScore <= 170
       ? generateFinishers(currentPlayerScore, throws).sort(
           (a, b) => a.length - b.length
-        )[0]
+        )
       : null;
+
+  const finisherSuggestion = finishers
+    ? finishers[Math.floor(Math.random() * finishers.length) + 1]
+    : [];
 
   const hasPlayerWon = Boolean(winningPlayer);
 
@@ -185,7 +189,9 @@ function Scoreboard({
             disableUndoBtn={hasPlayerWon || throws === 3}
           />
         </DartValues>
-        {finishers?.length && <FinisherSuggestions finishers={finishers} />}
+        {finisherSuggestion?.length && (
+          <FinisherSuggestions finisher={finisherSuggestion} />
+        )}
         <ScoreInputs scores={scores} />
         {!winningPlayer ? (
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>

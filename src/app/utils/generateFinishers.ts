@@ -26,7 +26,7 @@ function findFinishers(
   throwsLeft: number,
   dartsUsed: Array<string>
 ) {
-  // finish with just one dart throw, this will always only be caught in the initial loop
+  // finish with just one dart throw
   if (remainingScore === 0 && isDartAFinalFinisher(dartsUsed[0])) {
     finishers.push(dartsUsed);
     return;
@@ -34,10 +34,10 @@ function findFinishers(
 
   // finish with bullseye
   if (isBullseye(remainingScore)) {
-    const finishingDarts = [...dartsUsed, `D${remainingScore / 2}`];
+    const finishingDarts = [...dartsUsed];
     if (finishingDarts.length > throwsLeft) return;
 
-    finishers.push([...dartsUsed, `${remainingScore}`]);
+    finishers.push([...finishingDarts, `${remainingScore}`]);
     return;
   }
 
@@ -52,15 +52,19 @@ function findFinishers(
 
   for (const dart of darts) {
     multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
-      const nextRemainingScore = remainingScore - dart * multiplier;
-
       // do not multiply when dart is bullseye or 25
       if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
         return;
       }
 
+      const nextRemainingScore = remainingScore - dart * multiplier;
+
       // only recursively loop through it again if there is definitely a finishing dart that is a double or a bullseye, if not, then fallback to initial loop
-      if (doubles.includes(nextRemainingScore) || nextRemainingScore === 50) {
+      if (
+        doubles.includes(nextRemainingScore) ||
+        isBullseye(nextRemainingScore)
+      ) {
+        console.log([...dartsUsed, `${prefix}${dart}`]);
         findFinishers(finishers, nextRemainingScore, throwsLeft, [
           ...dartsUsed,
           `${prefix}${dart}`,
@@ -79,12 +83,12 @@ export function generateFinishers(
   // initial loop
   for (const dart of darts) {
     multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
-      const nextRemainingScore = remainingScore - dart * multiplier;
-
       // do not multiply when dart is bullseye or 25
       if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
         return;
       }
+
+      const nextRemainingScore = remainingScore - dart * multiplier;
 
       findFinishers(finishers, nextRemainingScore, throwsLeft, [
         `${prefix}${dart}`,
