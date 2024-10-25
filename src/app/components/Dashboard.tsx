@@ -6,6 +6,7 @@ import GameConfiguration from '@/app/components/GameConfiguration';
 import Scoreboard from '@/app/components/Scoreboard';
 import { createClient } from '@/utils/supabase/client';
 import SaveGame from '@/app/components/SaveGame';
+import { UUID } from 'crypto';
 
 const CONFIG_LOCAL_STORAGE_KEY = 'keep-score-darts-config';
 
@@ -45,7 +46,7 @@ const initialGameConfig: GameConfig = {
   currentPlayerIndex: 0,
 };
 
-function Dashboard({ userId }) {
+function Dashboard({ userId }: { userId: string }) {
   const supabase = createClient();
 
   const [gameConfig, setGameConfig] = useState<GameConfig>(initialGameConfig);

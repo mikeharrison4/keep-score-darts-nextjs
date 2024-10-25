@@ -1,10 +1,9 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { PlayerConfig } from '@/app/components/Dashboard';
-import { UUID } from 'crypto';
 
 type SaveGameProps = {
-  userId: UUID;
+  userId: string;
   playersConfig: Array<PlayerConfig>;
 };
 
