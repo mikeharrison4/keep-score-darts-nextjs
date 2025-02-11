@@ -20,6 +20,38 @@ function isDartAFinalFinisher(dart: string) {
   return dart.startsWith('D') || isBullseye(dart);
 }
 
+function loopDarts(
+  finishers: Array<Array<string>>,
+  isInitialLoop: boolean,
+  remainingScore: number,
+  throwsLeft: number,
+  dartsUsed: Array<string> = []
+) {
+  for (const dart of darts) {
+    multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
+      // do not multiply when dart is bullseye or 25
+      if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
+        return;
+      }
+
+      const nextRemainingScore = remainingScore - dart * multiplier;
+      const nextDart = `${prefix}${dart}`;
+
+      if (isInitialLoop) {
+        findFinishers(finishers, nextRemainingScore, throwsLeft, [nextDart]);
+      } else if (
+        doubles.includes(nextRemainingScore) ||
+        isBullseye(nextRemainingScore)
+      ) {
+        findFinishers(finishers, nextRemainingScore, throwsLeft, [
+          ...dartsUsed,
+          nextDart,
+        ]);
+      }
+    });
+  }
+}
+
 function findFinishers(
   finishers: Array<Array<string>>,
   remainingScore: number,
@@ -50,28 +82,7 @@ function findFinishers(
     return;
   }
 
-  for (const dart of darts) {
-    multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
-      // do not multiply when dart is bullseye or 25
-      if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
-        return;
-      }
-
-      const nextRemainingScore = remainingScore - dart * multiplier;
-
-      // only recursively loop through it again if there is definitely a finishing dart that is a double or a bullseye, if not, then fallback to initial loop
-      if (
-        doubles.includes(nextRemainingScore) ||
-        isBullseye(nextRemainingScore)
-      ) {
-        console.log([...dartsUsed, `${prefix}${dart}`]);
-        findFinishers(finishers, nextRemainingScore, throwsLeft, [
-          ...dartsUsed,
-          `${prefix}${dart}`,
-        ]);
-      }
-    });
-  }
+  loopDarts(finishers, false, remainingScore, throwsLeft, dartsUsed);
 }
 
 export function generateFinishers(
@@ -81,20 +92,7 @@ export function generateFinishers(
   const finishers: Array<Array<string>> = [];
 
   // initial loop
-  for (const dart of darts) {
-    multipliersWithPrefixes.forEach(({ multiplier, prefix }) => {
-      // do not multiply when dart is bullseye or 25
-      if ([2, 3].includes(multiplier) && (isBullseye(dart) || dart === 25)) {
-        return;
-      }
-
-      const nextRemainingScore = remainingScore - dart * multiplier;
-
-      findFinishers(finishers, nextRemainingScore, throwsLeft, [
-        `${prefix}${dart}`,
-      ]);
-    });
-  }
+  loopDarts(finishers, true, remainingScore, throwsLeft);
 
   return finishers;
 }
